@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Restaurant;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 class RestaurantController extends Controller
 {
     public function index()
     {
-        $restaurants = Restaurant::all();
+        $restaurants = Auth::user()->restaurants;
         return view('restaurants.index', compact('restaurants'));
     }
 
@@ -20,7 +22,7 @@ class RestaurantController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validatedData = $request->validate([
             'name' => 'required',
             'address' => 'required',
             'phone' => 'required',
@@ -28,7 +30,11 @@ class RestaurantController extends Controller
             'price' => 'required',
         ]);
 
-        Restaurant::create($request->all());
+        $userId = auth()->id();
+
+        $restaurant = new Restaurant($validatedData);
+        $restaurant->user_id = $userId;
+        $restaurant->save();
 
         return redirect('/restaurants')->with('success', 'Restaurant created successfully.');
     }
@@ -47,7 +53,7 @@ class RestaurantController extends Controller
 
     public function update(Request $request, $id)
     {
-        $request->validate([
+        $validatedData = $request->validate([
             'name' => 'required',
             'address' => 'required',
             'phone' => 'required',
@@ -55,15 +61,24 @@ class RestaurantController extends Controller
             'price' => 'required',
         ]);
 
-        $restaurant = Restaurant::find($id);
-        $restaurant->update($request->all());
+        $userId = auth()->id();
+
+        $restaurant = Restaurant::where('id', $id)
+                            ->where('user_id', $userId)
+                            ->firstOrFail();
+
+        $restaurant->update($validatedData);
 
         return redirect('/restaurants')->with('success', 'Restaurant updated successfully.');
     }
 
     public function destroy($id)
     {
-        $restaurant = Restaurant::find($id);
+        $userId = auth()->id();
+
+        $restaurant = Restaurant::where('id', $id)
+                            ->where('user_id', $userId)
+                            ->firstOrFail();
         $restaurant->delete();
 
         return redirect('/restaurants')->with('success', 'Restaurant deleted successfully.');

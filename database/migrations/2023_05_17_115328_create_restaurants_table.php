@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('phone');
             $table->string('specialty');
             $table->decimal('price', 8, 2);
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }

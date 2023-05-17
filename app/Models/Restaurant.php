@@ -16,4 +16,9 @@ class Restaurant extends Model
         'specialty',
         'price',
     ];
+
+    public function user()
+{
+    return $this->belongsTo(User::class);
+}
 }
